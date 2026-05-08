@@ -28,6 +28,12 @@ Shared library for DCP Wizard, IMF Wizard, and DCP Doctor — common post-produc
 | `metadata_edit` | CPL/OPL metadata editor |
 | `certificate` | X.509 certificate generation and trust management |
 | `dolby_vision` | Dolby Vision RPU, HDR10, HLG metadata handling |
+| `dashboard` | Real-time job monitoring and analytics dashboard |
+| `watermark` | Forensic watermarking (NexGuard, Civolution, internal) |
+| `dcdm` | Digital Cinema Distribution Master creation and export |
+| `version_tracker` | Content versioning database (delivery history) |
+| `trailer` | Theatrical trailer packaging (ratings cards, leaders) |
+| `accessibility` | Accessibility compliance checking (CVAA, EAA, AODA, Ofcom) |
 
 ## Building
 

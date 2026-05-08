@@ -51,6 +51,11 @@ add_library(postkit_core STATIC
     src/certificate.cpp
     src/dolby_vision.cpp
     src/dashboard.cpp
+    src/watermark.cpp
+    src/dcdm.cpp
+    src/version_tracker.cpp
+    src/trailer.cpp
+    src/accessibility.cpp
 )
 
 target_include_directories(postkit_core PUBLIC

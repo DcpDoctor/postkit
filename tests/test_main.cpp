@@ -14,6 +14,11 @@
 #include "postkit/preferences.h"
 #include "postkit/profiles.h"
 #include "postkit/certificate.h"
+#include "postkit/watermark.h"
+#include "postkit/dcdm.h"
+#include "postkit/version_tracker.h"
+#include "postkit/trailer.h"
+#include "postkit/accessibility.h"
 
 #include <cassert>
 #include <cstdio>
@@ -86,6 +91,54 @@ int main()
     assert(postkit::inject_dolby_vision(dv_opts) == 0);
     assert(postkit::convert_hdr("/tmp/in.mxf", postkit::HdrType::HLG, "/tmp/out.mxf") == 0);
     pass += 4;
+  }
+
+  // Watermark
+  {
+    postkit::WatermarkOptions wm_opts;
+    wm_opts.operator_id = "OP001";
+    wm_opts.input_dir = "/tmp/frames";
+    wm_opts.output_dir = "/tmp/wm_out";
+    auto wm_result = postkit::embed_watermark(wm_opts);
+    assert(!wm_result.success); // no input files
+    pass += 1;
+  }
+
+  // DCDM
+  {
+    postkit::DcdmOptions dcdm_opts;
+    dcdm_opts.input_dir = "/tmp/src";
+    dcdm_opts.output_dir = "/tmp/dcdm";
+    auto dcdm_result = postkit::create_dcdm(dcdm_opts);
+    assert(!dcdm_result.success); // no input files
+    pass += 1;
+  }
+
+  // Version Tracker
+  {
+    postkit::VersionTracker tracker;
+    assert(!tracker.open("/tmp/nonexistent_dir/db.sqlite"));
+    pass += 1;
+  }
+
+  // Trailer
+  {
+    postkit::TrailerOptions t_opts;
+    t_opts.content_dir = "/tmp/trailer";
+    t_opts.output_dir = "/tmp/trailer_out";
+    t_opts.title = "Test Trailer";
+    t_opts.rating = "PG-13";
+    auto t_result = postkit::package_trailer(t_opts);
+    assert(!t_result.success); // no input files
+    pass += 1;
+  }
+
+  // Accessibility
+  {
+    auto a_result = postkit::check_accessibility("/tmp/nonexistent_pkg");
+    assert(!a_result.compliant);
+    assert(a_result.findings.empty() == false || a_result.tracks_missing.empty() == false);
+    pass += 1;
   }
 
   std::printf("postkit: %d tests passed, %d failed\n", pass, fail);
