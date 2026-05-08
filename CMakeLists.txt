@@ -50,6 +50,7 @@ add_library(postkit_core STATIC
     src/metadata_edit.cpp
     src/certificate.cpp
     src/dolby_vision.cpp
+    src/dashboard.cpp
 )
 
 target_include_directories(postkit_core PUBLIC
