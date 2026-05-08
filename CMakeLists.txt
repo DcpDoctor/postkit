@@ -13,8 +13,14 @@ if(BUILD_PYTHON_BINDINGS)
 endif()
 
 # Dependencies
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBXML2 REQUIRED libxml-2.0)
+if(WIN32)
+  find_package(LibXml2 REQUIRED)
+  set(LIBXML2_INCLUDE_DIRS ${LIBXML2_INCLUDE_DIR})
+  set(LIBXML2_LIBRARIES LibXml2::LibXml2)
+else()
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBXML2 REQUIRED libxml-2.0)
+endif()
 find_package(OpenSSL REQUIRED)
 
 # Optional: spdlog (bundled or system)
