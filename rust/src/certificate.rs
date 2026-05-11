@@ -123,17 +123,11 @@ pub fn generate_certificate(opts: &CertOptions) -> i32 {
     match opts.cert_type {
         CertType::Root => {
             params.is_ca = IsCa::Ca(BasicConstraints::Unconstrained);
-            params.key_usages = vec![
-                KeyUsagePurpose::KeyCertSign,
-                KeyUsagePurpose::CrlSign,
-            ];
+            params.key_usages = vec![KeyUsagePurpose::KeyCertSign, KeyUsagePurpose::CrlSign];
         }
         CertType::Intermediate => {
             params.is_ca = IsCa::Ca(BasicConstraints::Constrained(0));
-            params.key_usages = vec![
-                KeyUsagePurpose::KeyCertSign,
-                KeyUsagePurpose::CrlSign,
-            ];
+            params.key_usages = vec![KeyUsagePurpose::KeyCertSign, KeyUsagePurpose::CrlSign];
         }
         CertType::Leaf | CertType::Signer => {
             params.is_ca = IsCa::NoCa;
@@ -186,14 +180,13 @@ pub fn generate_certificate(opts: &CertOptions) -> i32 {
             }
         };
 
-        let issuer_params =
-            match CertificateParams::from_ca_cert_pem(&issuer_cert_pem) {
-                Ok(p) => p,
-                Err(e) => {
-                    tracing::error!("failed to parse issuer cert: {e}");
-                    return -1;
-                }
-            };
+        let issuer_params = match CertificateParams::from_ca_cert_pem(&issuer_cert_pem) {
+            Ok(p) => p,
+            Err(e) => {
+                tracing::error!("failed to parse issuer cert: {e}");
+                return -1;
+            }
+        };
 
         let issuer = match issuer_params.self_signed(&issuer_key) {
             Ok(c) => c,
