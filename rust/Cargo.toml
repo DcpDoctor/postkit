@@ -12,7 +12,7 @@ dirs = "6"
 hex = "0.4"
 notify = "8"
 quick-xml = "0.37"
-rcgen = "0.13"
+rcgen = { version = "0.13", features = ["pem", "x509-parser"] }
 regex = "1"
 ring = "0.17"
 rusqlite = { version = "0.32", features = ["bundled"] }
