@@ -2,7 +2,7 @@
 
 Shared library for DCP Wizard, IMF Wizard, and DCP Doctor — common post-production functionality.
 
-Written in Rust with a C++ legacy implementation.
+Written in Rust. MXF wrapping uses [asdcplib-rs](https://github.com/PostPerfection/asdcplib-rs) FFI bindings.
 
 ## Modules
 
@@ -39,42 +39,19 @@ Written in Rust with a C++ legacy implementation.
 
 ## Building
 
-### Rust (primary)
-
 ```bash
 cd rust
 cargo build --release
 cargo test
 ```
 
-### C++ (legacy)
-
-```bash
-git clone --recurse-submodules https://github.com/PostPerfection/postkit.git
-cd postkit
-cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
-cmake --build build --parallel
-ctest --test-dir build --output-on-failure
-```
-
 ## Usage
-
-### Rust
 
 Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
 postkit = { git = "https://github.com/PostPerfection/postkit.git", branch = "master" }
-```
-
-### C++ (legacy)
-
-Link against `postkit_core` in your CMakeLists.txt:
-
-```cmake
-add_subdirectory(extern/postkit EXCLUDE_FROM_ALL)
-target_link_libraries(myapp PRIVATE postkit_core)
 ```
 
 ## License
