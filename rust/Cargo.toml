@@ -6,6 +6,7 @@ license = "GPL-3.0-or-later"
 description = "Shared library for DCP Wizard, IMF Wizard, and DCP Doctor"
 
 [dependencies]
+asdcplib = { git = "https://github.com/PostPerfection/asdcplib-rs.git", branch = "master" }
 base64 = "0.22"
 dirs = "6"
 hex = "0.4"
