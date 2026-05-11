@@ -40,26 +40,125 @@ pub struct FrameInfo {
     pub codec: String,
 }
 
-/// Extract a single frame as image (thumbnail/QC).
-pub fn extract_frame(_input: &Path, _frame: u32, _output_image: &Path) -> i32 {
-    tracing::warn!("extract_frame: not yet implemented");
-    0
+/// Extract a single frame as image (thumbnail/QC) using ffmpeg.
+pub fn extract_frame(input: &Path, frame: u32, output_image: &Path) -> i32 {
+    // Calculate timecode from frame number (assume 24fps default)
+    let seconds = frame as f64 / 24.0;
+
+    let output = std::process::Command::new("ffmpeg")
+        .arg("-y")
+        .arg("-i")
+        .arg(input)
+        .arg("-ss")
+        .arg(format!("{seconds:.3}"))
+        .arg("-frames:v")
+        .arg("1")
+        .arg(output_image)
+        .output();
+
+    match output {
+        Ok(o) if o.status.success() => 0,
+        Ok(o) => {
+            tracing::error!(
+                "Frame extraction failed: {}",
+                String::from_utf8_lossy(&o.stderr)
+            );
+            -1
+        }
+        Err(e) => {
+            tracing::error!("Failed to run ffmpeg: {e}");
+            -1
+        }
+    }
 }
 
-/// Get frame metadata without full decode.
-pub fn get_frame_info(_input: &Path, _frame: u32) -> FrameInfo {
-    tracing::warn!("get_frame_info: not yet implemented");
-    FrameInfo::default()
+/// Get frame metadata without full decode using ffprobe.
+pub fn get_frame_info(input: &Path, frame: u32) -> FrameInfo {
+    let output = std::process::Command::new("ffprobe")
+        .args(["-v", "quiet", "-print_format", "json", "-show_streams"])
+        .arg(input)
+        .output();
+
+    let Ok(output) = output else {
+        return FrameInfo::default();
+    };
+
+    let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap_or_default();
+
+    let stream = json["streams"]
+        .as_array()
+        .and_then(|s| s.iter().find(|s| s["codec_type"] == "video"));
+
+    if let Some(s) = stream {
+        FrameInfo {
+            frame_number: frame,
+            width: s["width"].as_u64().unwrap_or(0) as u32,
+            height: s["height"].as_u64().unwrap_or(0) as u32,
+            bitrate_kbps: s["bit_rate"]
+                .as_str()
+                .and_then(|b| b.parse::<u64>().ok())
+                .map(|b| (b / 1000) as u32)
+                .unwrap_or(0),
+            codec: s["codec_name"].as_str().unwrap_or("").to_string(),
+        }
+    } else {
+        FrameInfo {
+            frame_number: frame,
+            ..Default::default()
+        }
+    }
 }
 
-/// Start playback (blocking).
-pub fn play(_opts: &PlaybackOptions) -> i32 {
-    tracing::warn!("play: not yet implemented");
-    0
+/// Start playback using ffplay (blocking).
+pub fn play(opts: &PlaybackOptions) -> i32 {
+    let mut cmd = std::process::Command::new("ffplay");
+    cmd.arg("-autoexit").arg(&opts.input);
+
+    if opts.start_frame > 0 {
+        let seconds = opts.start_frame as f64 / 24.0;
+        cmd.arg("-ss").arg(format!("{seconds:.3}"));
+    }
+
+    if opts.loop_playback {
+        cmd.arg("-loop").arg("0");
+    }
+
+    match cmd.status() {
+        Ok(s) if s.success() => 0,
+        Ok(_) => -1,
+        Err(e) => {
+            tracing::error!("Failed to run ffplay: {e}");
+            -1
+        }
+    }
 }
 
-/// Render all frames to image sequence.
-pub fn render_to_sequence(_input: &Path, _output_dir: &Path, _format: Option<&str>) -> i32 {
-    tracing::warn!("render_to_sequence: not yet implemented");
-    0
+/// Render all frames to image sequence using ffmpeg.
+pub fn render_to_sequence(input: &Path, output_dir: &Path, format: Option<&str>) -> i32 {
+    if let Err(e) = std::fs::create_dir_all(output_dir) {
+        tracing::error!("Failed to create output directory: {e}");
+        return -1;
+    }
+
+    let ext = format.unwrap_or("png");
+    let output_pattern = output_dir.join(format!("frame_%06d.{ext}"));
+
+    let output = std::process::Command::new("ffmpeg")
+        .arg("-y")
+        .arg("-i")
+        .arg(input)
+        .arg(&output_pattern)
+        .output();
+
+    match output {
+        Ok(o) if o.status.success() => 0,
+        Ok(o) => {
+            tracing::error!("Render failed: {}", String::from_utf8_lossy(&o.stderr));
+            -1
+        }
+        Err(e) => {
+            tracing::error!("Failed to run ffmpeg: {e}");
+            -1
+        }
+    }
 }
