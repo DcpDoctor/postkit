@@ -2,17 +2,12 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 /// Forensic watermark backend.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum WatermarkBackend {
     NexGuard,
     Civolution,
+    #[default]
     Internal,
-}
-
-impl Default for WatermarkBackend {
-    fn default() -> Self {
-        Self::Internal
-    }
 }
 
 /// Watermark options.

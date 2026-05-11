@@ -43,7 +43,7 @@ pub fn hash_file(path: &Path, algorithm: HashAlgorithm) -> std::io::Result<HashR
             let digest = hasher.finalize();
             Ok(HashResult {
                 hex: hex_encode(&digest),
-                base64: BASE64.encode(&digest),
+                base64: BASE64.encode(digest),
             })
         }
         HashAlgorithm::Sha256 => {
@@ -58,7 +58,7 @@ pub fn hash_file(path: &Path, algorithm: HashAlgorithm) -> std::io::Result<HashR
             let digest = hasher.finalize();
             Ok(HashResult {
                 hex: hex_encode(&digest),
-                base64: BASE64.encode(&digest),
+                base64: BASE64.encode(digest),
             })
         }
     }

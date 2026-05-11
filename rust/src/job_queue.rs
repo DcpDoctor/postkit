@@ -95,11 +95,11 @@ impl JobQueue {
     /// Cancel a job by ID.
     pub fn cancel(&self, id: u64) -> bool {
         let mut inner = self.inner.lock().unwrap();
-        if let Some(job) = inner.jobs.iter_mut().find(|j| j.id == id) {
-            if job.state == JobState::Queued || job.state == JobState::Running {
-                job.state = JobState::Cancelled;
-                return true;
-            }
+        if let Some(job) = inner.jobs.iter_mut().find(|j| j.id == id)
+            && (job.state == JobState::Queued || job.state == JobState::Running)
+        {
+            job.state = JobState::Cancelled;
+            return true;
         }
         false
     }

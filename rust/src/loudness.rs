@@ -44,28 +44,28 @@ pub fn measure_loudness(input: &Path) -> LoudnessResult {
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     // Parse loudnorm JSON output from ffmpeg stderr
-    if let Some(json_start) = stderr.rfind('{') {
-        if let Some(json_end) = stderr[json_start..].find('}') {
-            let json_str = &stderr[json_start..json_start + json_end + 1];
-            if let Ok(val) = serde_json::from_str::<serde_json::Value>(json_str) {
-                return LoudnessResult {
-                    integrated_lufs: val["input_i"]
-                        .as_str()
-                        .and_then(|s| s.parse().ok())
-                        .unwrap_or(0.0),
-                    range_lu: val["input_lra"]
-                        .as_str()
-                        .and_then(|s| s.parse().ok())
-                        .unwrap_or(0.0),
-                    true_peak_dbtp: val["input_tp"]
-                        .as_str()
-                        .and_then(|s| s.parse().ok())
-                        .unwrap_or(0.0),
-                    short_term_max_lufs: 0.0,
-                    success: true,
-                    error: String::new(),
-                };
-            }
+    if let Some(json_start) = stderr.rfind('{')
+        && let Some(json_end) = stderr[json_start..].find('}')
+    {
+        let json_str = &stderr[json_start..json_start + json_end + 1];
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(json_str) {
+            return LoudnessResult {
+                integrated_lufs: val["input_i"]
+                    .as_str()
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(0.0),
+                range_lu: val["input_lra"]
+                    .as_str()
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(0.0),
+                true_peak_dbtp: val["input_tp"]
+                    .as_str()
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(0.0),
+                short_term_max_lufs: 0.0,
+                success: true,
+                error: String::new(),
+            };
         }
     }
 

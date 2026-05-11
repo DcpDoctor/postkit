@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 /// Camera raw format identifiers.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum CameraFormat {
     Arriraw,
     RedR3d,
@@ -11,6 +11,7 @@ pub enum CameraFormat {
     BlackmagicBraw,
     ProRes,
     DnxHr,
+    #[default]
     Unknown,
 }
 
@@ -60,12 +61,6 @@ pub struct ClipInfo {
     pub colour_space: String,
     pub camera_model: String,
     pub reel_name: String,
-}
-
-impl Default for CameraFormat {
-    fn default() -> Self {
-        Self::Unknown
-    }
 }
 
 /// Detect camera format from directory/file.

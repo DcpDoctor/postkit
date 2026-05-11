@@ -62,12 +62,12 @@ pub fn json_insert_if_missing(json: &str, key: &str, value: &str) -> String {
         Ok(v) => v,
         Err(_) => return json.to_string(),
     };
-    if let Some(obj) = val.as_object_mut() {
-        if !obj.contains_key(key) {
-            let parsed: serde_json::Value =
-                serde_json::from_str(value).unwrap_or(serde_json::Value::Null);
-            obj.insert(key.to_string(), parsed);
-        }
+    if let Some(obj) = val.as_object_mut()
+        && !obj.contains_key(key)
+    {
+        let parsed: serde_json::Value =
+            serde_json::from_str(value).unwrap_or(serde_json::Value::Null);
+        obj.insert(key.to_string(), parsed);
     }
     serde_json::to_string_pretty(&val).unwrap_or_else(|_| json.to_string())
 }

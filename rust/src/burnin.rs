@@ -54,10 +54,9 @@ pub fn burnin(opts: &BurninOptions) -> std::io::Result<()> {
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::Other,
-            format!("ffmpeg burn-in failed: {stderr}"),
-        ));
+        return Err(std::io::Error::other(format!(
+            "ffmpeg burn-in failed: {stderr}"
+        )));
     }
 
     Ok(())

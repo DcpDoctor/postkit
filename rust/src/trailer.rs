@@ -2,8 +2,9 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// Rating system.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum RatingSystem {
+    #[default]
     Mpaa,
     Bbfc,
     Fsk,
@@ -11,8 +12,9 @@ pub enum RatingSystem {
 }
 
 /// Trailer band colour.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum TrailerBand {
+    #[default]
     Green,
     Red,
     Yellow,
@@ -31,18 +33,6 @@ pub struct TrailerOptions {
     pub countdown_seconds: u32,
     pub fps_num: u32,
     pub fps_den: u32,
-}
-
-impl Default for RatingSystem {
-    fn default() -> Self {
-        Self::Mpaa
-    }
-}
-
-impl Default for TrailerBand {
-    fn default() -> Self {
-        Self::Green
-    }
 }
 
 /// Result of trailer packaging.

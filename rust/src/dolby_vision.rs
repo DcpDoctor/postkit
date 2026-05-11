@@ -2,20 +2,22 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 /// Dolby Vision profile.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum DolbyVisionProfile {
     /// MEL (Minimum Enhancement Layer) — single-layer PQ
     Profile5,
     /// HLG backward compatible
     Profile8,
     /// SDR backward compatible (most common for cinema)
+    #[default]
     Profile81,
     Unknown,
 }
 
 /// HDR metadata type.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum HdrType {
+    #[default]
     Sdr,
     /// Static PQ metadata (SMPTE ST 2086 + CTA 861.3)
     Hdr10,
@@ -65,12 +67,6 @@ pub struct DolbyVisionOptions {
     pub embed_rpu: bool,
 }
 
-impl Default for DolbyVisionProfile {
-    fn default() -> Self {
-        Self::Profile81
-    }
-}
-
 /// HDR metadata injection options.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct HdrMetadataOptions {
@@ -80,12 +76,6 @@ pub struct HdrMetadataOptions {
     /// Dolby Vision metadata XML
     pub dolby_vision_xml: PathBuf,
     pub output: PathBuf,
-}
-
-impl Default for HdrType {
-    fn default() -> Self {
-        Self::Sdr
-    }
 }
 
 /// Inject HDR10 static metadata into MXF/CPL.
