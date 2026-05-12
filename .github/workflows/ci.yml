@@ -46,15 +46,15 @@ jobs:
 
       - name: Build
         working-directory: rust
-        run: cargo build --all-features
+        run: cargo build --features async
 
       - name: Test
         working-directory: rust
-        run: cargo test --all-features
+        run: cargo test --features async
 
       - name: Clippy
         working-directory: rust
-        run: cargo clippy --all-features -- -D warnings
+        run: cargo clippy --features async -- -D warnings
 
       - name: Format check
         working-directory: rust

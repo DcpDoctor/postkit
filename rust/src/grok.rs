@@ -1,13 +1,21 @@
-use std::ffi::CString;
-use std::os::raw::c_char;
 use std::path::{Path, PathBuf};
+
+#[cfg(feature = "grok-ffi")]
+use std::ffi::CString;
+#[cfg(feature = "grok-ffi")]
+use std::os::raw::c_char;
+#[cfg(feature = "grok-ffi")]
 use std::sync::Mutex;
+#[cfg(feature = "grok-ffi")]
 use std::sync::atomic::{AtomicBool, Ordering};
 
+#[cfg(feature = "grok-ffi")]
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
+#[cfg(feature = "grok-ffi")]
 static CODEC_LOCK: Mutex<()> = Mutex::new(());
 
 /// Initialize grok library. Safe to call multiple times.
+#[cfg(feature = "grok-ffi")]
 pub fn initialize(num_threads: u32) {
     if INITIALIZED.swap(true, Ordering::SeqCst) {
         return;
@@ -18,6 +26,7 @@ pub fn initialize(num_threads: u32) {
 }
 
 /// Deinitialize grok library.
+#[cfg(feature = "grok-ffi")]
 pub fn deinitialize() {
     if !INITIALIZED.swap(false, Ordering::SeqCst) {
         return;
@@ -42,6 +51,7 @@ pub fn deinitialize() {
 /// * `num_resolutions` - number of DWT decomposition levels + 1
 /// * `codeblock_size` - codeblock dimension (e.g. 32)
 /// * `progression` - progression order (e.g. "CPRL")
+#[cfg(feature = "grok-ffi")]
 pub fn compress_image_xyz(
     components: [&[i32]; 3],
     width: u32,
@@ -191,6 +201,7 @@ pub fn compress_image_xyz(
 ///
 /// Convenience wrapper that loads a TIFF via grk_codec_compress with --xyz.
 /// Uses the codec API (serialized via mutex) for image loading convenience.
+#[cfg(feature = "grok-ffi")]
 pub fn compress_xyz(
     input: &Path,
     output: &Path,
@@ -400,6 +411,7 @@ pub fn load_tiff(path: &Path) -> Result<TiffFrame, String> {
 /// Compress a loaded TIFF frame to JPEG 2000 with XYZ transform.
 ///
 /// Uses the core API — fully thread-safe, can be called concurrently.
+#[cfg(feature = "grok-ffi")]
 pub fn compress_frame_xyz(
     frame: &TiffFrame,
     output: &Path,
