@@ -152,7 +152,7 @@ pub fn rgb_to_xyz_inplace(buf: &mut [u8]) {
         // Step 2: 3×3 matrix multiply (linear RGB → linear XYZ)
         let x_lin = 0.4124564_f32 * r_lin + 0.3575761_f32 * g_lin + 0.1804375_f32 * b_lin;
         let y_lin = 0.2126729_f32 * r_lin + 0.7151522_f32 * g_lin + 0.0721750_f32 * b_lin;
-        let z_lin = 0.0193339_f32 * r_lin + 0.1191920_f32 * g_lin + 0.9503041_f32 * b_lin;
+        let z_lin = 0.0193339_f32 * r_lin + 0.119_192_f32 * g_lin + 0.9503041_f32 * b_lin;
 
         // Step 3: Quantize and apply DCI 2.6 gamma via LUT (no powf)
         let x16 = gamma_lut[(x_lin.clamp(0.0, 1.0) * 65535.0 + 0.5) as usize];

@@ -172,6 +172,7 @@ pub fn find_grk_compress() -> Option<PathBuf> {
 /// Compress a single TIFF to J2C by spawning a `grk_compress` subprocess.
 ///
 /// Uses `-H 1` (single thread) so the caller can run many in parallel.
+#[allow(clippy::too_many_arguments)]
 pub fn compress_file_subprocess(
     grk_bin: &Path,
     lib_path: &str,

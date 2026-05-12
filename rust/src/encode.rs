@@ -523,16 +523,16 @@ where
             }
         };
 
-        if let Some(mut stdin) = grk.stdin.take() {
-            if let Err(e) = stdin.write_all(&frame_buf) {
-                kill_child(&mut ffmpeg);
-                return EncodeResult {
-                    success: false,
-                    error: format!("Pipe error frame {encoded}: {e}"),
-                    frames_encoded: encoded,
-                    output_dir: opts.output_dir.clone(),
-                };
-            }
+        if let Some(mut stdin) = grk.stdin.take()
+            && let Err(e) = stdin.write_all(&frame_buf)
+        {
+            kill_child(&mut ffmpeg);
+            return EncodeResult {
+                success: false,
+                error: format!("Pipe error frame {encoded}: {e}"),
+                frames_encoded: encoded,
+                output_dir: opts.output_dir.clone(),
+            };
         }
 
         let status = match grk.wait() {
@@ -563,7 +563,7 @@ where
 
         encoded += 1;
 
-        if encoded % 5 == 0 || encoded == total_frames {
+        if encoded.is_multiple_of(5) || encoded == total_frames {
             let elapsed = encode_start.elapsed().as_secs_f64();
             on_progress(StreamProgress {
                 frame: encoded,
@@ -695,11 +695,8 @@ where
             let done_count = done_count.clone();
             let error_flag = error_flag.clone();
             let first_error = first_error.clone();
-            let cancel = cancel;
-            let pause = pause;
             let grk_bin = &grk_bin;
             let lib_path = &lib_path;
-            let output_dir = output_dir;
             let frame_paths = &frame_paths;
 
             s.spawn(move || {
