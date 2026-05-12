@@ -7,6 +7,7 @@ pub mod dashboard;
 pub mod dcdm;
 pub mod dolby_vision;
 pub mod encode;
+pub mod grok;
 pub mod hash;
 pub mod ingest;
 pub mod j2k;
