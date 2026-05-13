@@ -40,7 +40,6 @@ Written in Rust. MXF wrapping uses [asdcplib-rs](https://github.com/PostPerfecti
 ## Building
 
 ```bash
-cd rust
 cargo build --release
 cargo test
 ```

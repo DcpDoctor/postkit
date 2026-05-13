@@ -90,7 +90,9 @@ pub fn detect_input_type(path: &Path) -> InputType {
     if path.is_dir() {
         if let Ok(entries) = std::fs::read_dir(path) {
             for entry in entries.flatten() {
-                let ext = entry.path().extension()
+                let ext = entry
+                    .path()
+                    .extension()
                     .and_then(|e| e.to_str())
                     .map(|e| e.to_lowercase())
                     .unwrap_or_default();
@@ -103,7 +105,8 @@ pub fn detect_input_type(path: &Path) -> InputType {
         }
         InputType::Unknown
     } else {
-        let ext = path.extension()
+        let ext = path
+            .extension()
             .and_then(|e| e.to_str())
             .map(|e| e.to_lowercase())
             .unwrap_or_default();
@@ -270,8 +273,8 @@ fn which_compressor() -> Option<PathBuf> {
 
 use std::io::{Read, Write};
 use std::process::{Child, Stdio};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Options for streaming encode (video → J2K without intermediate files).
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -340,8 +343,16 @@ pub fn find_compressor() -> Option<(PathBuf, Option<PathBuf>)> {
 /// Probe a video file for dimensions and frame count.
 pub fn probe_video(input: &Path) -> (u32, u32, u64) {
     let dim_output = std::process::Command::new("ffprobe")
-        .args(["-v", "error", "-select_streams", "v:0",
-               "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x"])
+        .args([
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=width,height",
+            "-of",
+            "csv=p=0:s=x",
+        ])
         .arg(input)
         .output();
 
@@ -351,21 +362,33 @@ pub fn probe_video(input: &Path) -> (u32, u32, u64) {
             let parts: Vec<&str> = s.split('x').collect();
             if parts.len() == 2 {
                 (parts[0].parse().unwrap_or(0), parts[1].parse().unwrap_or(0))
-            } else { (0, 0) }
+            } else {
+                (0, 0)
+            }
         }
         _ => (0, 0),
     };
 
     let count_output = std::process::Command::new("ffprobe")
-        .args(["-v", "error", "-select_streams", "v:0", "-count_packets",
-               "-show_entries", "stream=nb_read_packets", "-of", "csv=p=0"])
+        .args([
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-count_packets",
+            "-show_entries",
+            "stream=nb_read_packets",
+            "-of",
+            "csv=p=0",
+        ])
         .arg(input)
         .output();
 
     let frame_count = match count_output {
-        Ok(o) if o.status.success() => {
-            String::from_utf8_lossy(&o.stdout).trim().parse().unwrap_or(0)
-        }
+        Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
+            .trim()
+            .parse()
+            .unwrap_or(0),
         _ => 0,
     };
 
@@ -424,7 +447,16 @@ where
     let mut ffmpeg = match std::process::Command::new("ffmpeg")
         .args(["-y", "-i"])
         .arg(&opts.input)
-        .args(["-vf", &fps_filter, "-pix_fmt", "rgb48be", "-f", "rawvideo", "-an", "pipe:1"])
+        .args([
+            "-vf",
+            &fps_filter,
+            "-pix_fmt",
+            "rgb48be",
+            "-f",
+            "rawvideo",
+            "-an",
+            "pipe:1",
+        ])
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
@@ -499,12 +531,18 @@ where
             cmd.env("LD_LIBRARY_PATH", ld);
         }
         cmd.args(["--in-fmt", "raw"])
-            .arg("-F").arg(&raw_fmt)
-            .arg("-o").arg(&output_frame)
-            .arg("-r").arg(format!("{}", opts.compression_ratio))
-            .arg("-n").arg(format!("{}", opts.num_resolutions))
-            .arg("-b").arg(format!("{},{}", opts.codeblock_size, opts.codeblock_size))
-            .arg("-p").arg(&opts.progression)
+            .arg("-F")
+            .arg(&raw_fmt)
+            .arg("-o")
+            .arg(&output_frame)
+            .arg("-r")
+            .arg(format!("{}", opts.compression_ratio))
+            .arg("-n")
+            .arg(format!("{}", opts.num_resolutions))
+            .arg("-b")
+            .arg(format!("{},{}", opts.codeblock_size, opts.codeblock_size))
+            .arg("-p")
+            .arg(&opts.progression)
             .arg("--xyz")
             .stdin(Stdio::piped())
             .stdout(Stdio::null())
@@ -549,8 +587,14 @@ where
         };
 
         if !status.success() {
-            let stderr_out = grk.stderr.take()
-                .map(|mut s| { let mut b = String::new(); let _ = s.read_to_string(&mut b); b })
+            let stderr_out = grk
+                .stderr
+                .take()
+                .map(|mut s| {
+                    let mut b = String::new();
+                    let _ = s.read_to_string(&mut b);
+                    b
+                })
                 .unwrap_or_default();
             kill_child(&mut ffmpeg);
             return EncodeResult {
@@ -568,7 +612,11 @@ where
             on_progress(StreamProgress {
                 frame: encoded,
                 total_frames,
-                fps: if elapsed > 0.0 { encoded as f64 / elapsed } else { 0.0 },
+                fps: if elapsed > 0.0 {
+                    encoded as f64 / elapsed
+                } else {
+                    0.0
+                },
                 elapsed_secs: elapsed,
             });
         }
@@ -595,8 +643,13 @@ fn read_exact_or_eof(reader: &mut impl Read, buf: &mut [u8]) -> ReadResult {
     while filled < buf.len() {
         match reader.read(&mut buf[filled..]) {
             Result::Ok(0) => {
-                return if filled == 0 { ReadResult::Eof } else {
-                    ReadResult::Err(std::io::Error::new(std::io::ErrorKind::UnexpectedEof, "partial frame"))
+                return if filled == 0 {
+                    ReadResult::Eof
+                } else {
+                    ReadResult::Err(std::io::Error::new(
+                        std::io::ErrorKind::UnexpectedEof,
+                        "partial frame",
+                    ))
                 };
             }
             Result::Ok(n) => filled += n,
@@ -690,74 +743,94 @@ where
     let work_idx = Arc::new(std::sync::atomic::AtomicUsize::new(0));
 
     std::thread::scope(|s| {
-        let _workers: Vec<_> = (0..parallelism).map(|_| {
-            let work_idx = work_idx.clone();
-            let done_count = done_count.clone();
-            let error_flag = error_flag.clone();
-            let first_error = first_error.clone();
-            let grk_bin = &grk_bin;
-            let lib_path = &lib_path;
-            let frame_paths = &frame_paths;
+        let _workers: Vec<_> = (0..parallelism)
+            .map(|_| {
+                let work_idx = work_idx.clone();
+                let done_count = done_count.clone();
+                let error_flag = error_flag.clone();
+                let first_error = first_error.clone();
+                let grk_bin = &grk_bin;
+                let lib_path = &lib_path;
+                let frame_paths = &frame_paths;
 
-            s.spawn(move || {
-                loop {
-                    if cancel.load(Ordering::Relaxed) || error_flag.load(Ordering::Relaxed) {
-                        break;
-                    }
-                    while pause.load(Ordering::Relaxed) {
-                        if cancel.load(Ordering::Relaxed) { break; }
-                        std::thread::sleep(std::time::Duration::from_millis(100));
-                    }
-
-                    let idx = work_idx.fetch_add(1, Ordering::Relaxed);
-                    if idx >= frame_paths.len() {
-                        break;
-                    }
-
-                    let frame = &frame_paths[idx];
-                    let stem = frame.file_stem()
-                        .and_then(|s| s.to_str())
-                        .unwrap_or("frame");
-                    let out_file = output_dir.join(format!("{stem}.j2k"));
-
-                    let result = std::process::Command::new(grk_bin)
-                        .env("LD_LIBRARY_PATH", lib_path)
-                        .args([
-                            "-i", &frame.to_string_lossy(),
-                            "-o", &out_file.to_string_lossy(),
-                            "--xyz",
-                            "-r", "10",
-                            "-n", "6",
-                            "-b", "32,32",
-                            "-p", "CPRL",
-                            "-H", "1",
-                        ])
-                        .stdout(Stdio::null())
-                        .stderr(Stdio::null())
-                        .status();
-
-                    match result {
-                        Ok(status) if status.success() => {
-                            done_count.fetch_add(1, Ordering::Relaxed);
+                s.spawn(move || {
+                    loop {
+                        if cancel.load(Ordering::Relaxed) || error_flag.load(Ordering::Relaxed) {
+                            break;
                         }
-                        Ok(status) => {
-                            error_flag.store(true, Ordering::Relaxed);
-                            let mut err = first_error.lock().unwrap();
-                            if err.is_empty() {
-                                *err = format!("grk_compress failed on {}: {}", frame.display(), status);
+                        while pause.load(Ordering::Relaxed) {
+                            if cancel.load(Ordering::Relaxed) {
+                                break;
+                            }
+                            std::thread::sleep(std::time::Duration::from_millis(100));
+                        }
+
+                        let idx = work_idx.fetch_add(1, Ordering::Relaxed);
+                        if idx >= frame_paths.len() {
+                            break;
+                        }
+
+                        let frame = &frame_paths[idx];
+                        let stem = frame
+                            .file_stem()
+                            .and_then(|s| s.to_str())
+                            .unwrap_or("frame");
+                        let out_file = output_dir.join(format!("{stem}.j2k"));
+
+                        let result = std::process::Command::new(grk_bin)
+                            .env("LD_LIBRARY_PATH", lib_path)
+                            .args([
+                                "-i",
+                                &frame.to_string_lossy(),
+                                "-o",
+                                &out_file.to_string_lossy(),
+                                "--xyz",
+                                "-r",
+                                "10",
+                                "-n",
+                                "6",
+                                "-b",
+                                "32,32",
+                                "-p",
+                                "CPRL",
+                                "-H",
+                                "1",
+                            ])
+                            .stdout(Stdio::null())
+                            .stderr(Stdio::null())
+                            .status();
+
+                        match result {
+                            Ok(status) if status.success() => {
+                                done_count.fetch_add(1, Ordering::Relaxed);
+                            }
+                            Ok(status) => {
+                                error_flag.store(true, Ordering::Relaxed);
+                                let mut err = first_error.lock().unwrap();
+                                if err.is_empty() {
+                                    *err = format!(
+                                        "grk_compress failed on {}: {}",
+                                        frame.display(),
+                                        status
+                                    );
+                                }
+                            }
+                            Err(e) => {
+                                error_flag.store(true, Ordering::Relaxed);
+                                let mut err = first_error.lock().unwrap();
+                                if err.is_empty() {
+                                    *err = format!(
+                                        "Failed to spawn grk_compress for {}: {}",
+                                        frame.display(),
+                                        e
+                                    );
+                                }
                             }
                         }
-                        Err(e) => {
-                            error_flag.store(true, Ordering::Relaxed);
-                            let mut err = first_error.lock().unwrap();
-                            if err.is_empty() {
-                                *err = format!("Failed to spawn grk_compress for {}: {}", frame.display(), e);
-                            }
-                        }
                     }
-                }
+                })
             })
-        }).collect();
+            .collect();
 
         // Monitor progress
         loop {
@@ -765,11 +838,21 @@ where
 
             let done = done_count.load(Ordering::Relaxed);
             let elapsed = encode_start.elapsed().as_secs_f64();
-            let fps = if elapsed > 0.0 { done as f64 / elapsed } else { 0.0 };
+            let fps = if elapsed > 0.0 {
+                done as f64 / elapsed
+            } else {
+                0.0
+            };
 
-            on_progress(ParallelProgress { done, total, fps, elapsed_secs: elapsed });
+            on_progress(ParallelProgress {
+                done,
+                total,
+                fps,
+                elapsed_secs: elapsed,
+            });
 
-            if done >= total || error_flag.load(Ordering::Relaxed) || cancel.load(Ordering::Relaxed) {
+            if done >= total || error_flag.load(Ordering::Relaxed) || cancel.load(Ordering::Relaxed)
+            {
                 break;
             }
         }

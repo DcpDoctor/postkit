@@ -45,17 +45,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Build
-        working-directory: rust
         run: cargo build --features async
 
       - name: Test
-        working-directory: rust
         run: cargo test --features async
 
       - name: Clippy
-        working-directory: rust
         run: cargo clippy --features async -- -D warnings
 
       - name: Format check
-        working-directory: rust
         run: cargo fmt -- --check

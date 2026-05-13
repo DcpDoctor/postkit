@@ -13,26 +13,27 @@ pub struct TiffFrame {
 ///
 /// Supports 8, 12, 16-bit RGB TIFFs. Returns 3 planar buffers (R, G, B).
 pub fn load_tiff(path: &Path) -> Result<TiffFrame, String> {
+    use std::io::{BufReader, Read, Seek, SeekFrom};
     use tiff::decoder::Decoder;
     use tiff::tags::Tag;
-    use std::io::{BufReader, Read, Seek, SeekFrom};
 
-    let file = std::fs::File::open(path)
-        .map_err(|e| format!("Cannot open {}: {e}", path.display()))?;
+    let file =
+        std::fs::File::open(path).map_err(|e| format!("Cannot open {}: {e}", path.display()))?;
     let mut reader = BufReader::new(file);
     let mut decoder = Decoder::new(&mut reader)
         .map_err(|e| format!("TIFF decode error for {}: {e}", path.display()))?;
 
-    let (width, height) = decoder.dimensions()
+    let (width, height) = decoder
+        .dimensions()
         .map_err(|e| format!("TIFF dimensions error: {e}"))?;
 
     // Read bits per sample
-    let bits_per_sample = decoder.get_tag_u32(Tag::BitsPerSample)
+    let bits_per_sample = decoder
+        .get_tag_u32(Tag::BitsPerSample)
         .map_err(|e| format!("Cannot read BitsPerSample: {e}"))? as u8;
 
     // Read samples per pixel
-    let samples_per_pixel = decoder.get_tag_u32(Tag::SamplesPerPixel)
-        .unwrap_or(3) as u8;
+    let samples_per_pixel = decoder.get_tag_u32(Tag::SamplesPerPixel).unwrap_or(3) as u8;
     if samples_per_pixel < 3 {
         return Err(format!("Need ≥3 samples/pixel, got {}", samples_per_pixel));
     }
@@ -41,7 +42,8 @@ pub fn load_tiff(path: &Path) -> Result<TiffFrame, String> {
 
     // For standard bit depths (8, 16), use the tiff crate decoder
     if bits_per_sample == 8 || bits_per_sample == 16 {
-        let image = decoder.read_image()
+        let image = decoder
+            .read_image()
             .map_err(|e| format!("TIFF read error for {}: {e}", path.display()))?;
 
         let mut r = Vec::with_capacity(num_pixels);
@@ -83,9 +85,11 @@ pub fn load_tiff(path: &Path) -> Result<TiffFrame, String> {
     }
 
     // Get strip offsets and byte counts
-    let strip_offsets = decoder.get_tag_u64_vec(Tag::StripOffsets)
+    let strip_offsets = decoder
+        .get_tag_u64_vec(Tag::StripOffsets)
         .map_err(|e| format!("Cannot read StripOffsets: {e}"))?;
-    let strip_byte_counts = decoder.get_tag_u64_vec(Tag::StripByteCounts)
+    let strip_byte_counts = decoder
+        .get_tag_u64_vec(Tag::StripByteCounts)
         .map_err(|e| format!("Cannot read StripByteCounts: {e}"))?;
 
     // Read all strip data
@@ -94,10 +98,12 @@ pub fn load_tiff(path: &Path) -> Result<TiffFrame, String> {
     // Need to get inner reader back from decoder
     drop(decoder);
     for (offset, count) in strip_offsets.iter().zip(strip_byte_counts.iter()) {
-        reader.seek(SeekFrom::Start(*offset))
+        reader
+            .seek(SeekFrom::Start(*offset))
             .map_err(|e| format!("Seek error: {e}"))?;
         let mut buf = vec![0u8; *count as usize];
-        reader.read_exact(&mut buf)
+        reader
+            .read_exact(&mut buf)
             .map_err(|e| format!("Read error: {e}"))?;
         raw_data.extend_from_slice(&buf);
     }
@@ -109,7 +115,9 @@ pub fn load_tiff(path: &Path) -> Result<TiffFrame, String> {
     let mut byte_idx = 0usize;
     let mut sample_idx = 0usize;
     while sample_idx < total_samples {
-        if byte_idx + 2 >= raw_data.len() { break; }
+        if byte_idx + 2 >= raw_data.len() {
+            break;
+        }
         if sample_idx + 1 < total_samples {
             // Two 12-bit samples from 3 bytes
             let b0 = raw_data[byte_idx] as u16;
@@ -157,7 +165,9 @@ pub fn load_tiff(path: &Path) -> Result<TiffFrame, String> {
 pub fn find_grk_compress() -> Option<PathBuf> {
     if let Ok(home) = std::env::var("HOME") {
         let p = PathBuf::from(home).join("bin/grok/bin/grk_compress");
-        if p.exists() { return Some(p); }
+        if p.exists() {
+            return Some(p);
+        }
     }
     // Check PATH
     std::process::Command::new("which")
@@ -186,14 +196,21 @@ pub fn compress_file_subprocess(
     let status = std::process::Command::new(grk_bin)
         .env("LD_LIBRARY_PATH", lib_path)
         .args([
-            "-i", &input.to_string_lossy(),
-            "-o", &output.to_string_lossy(),
-            "-r", &format!("{}", ratio),
+            "-i",
+            &input.to_string_lossy(),
+            "-o",
+            &output.to_string_lossy(),
+            "-r",
+            &format!("{}", ratio),
             "--xyz",
-            "-n", &format!("{}", num_resolutions),
-            "-b", &format!("{},{}", codeblock_size, codeblock_size),
-            "-p", progression,
-            "-H", "1",
+            "-n",
+            &format!("{}", num_resolutions),
+            "-b",
+            &format!("{},{}", codeblock_size, codeblock_size),
+            "-p",
+            progression,
+            "-H",
+            "1",
         ])
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
@@ -203,8 +220,11 @@ pub fn compress_file_subprocess(
     if status.success() {
         Ok(())
     } else {
-        Err(format!("grk_compress failed with status {} for {}",
-            status, input.display()))
+        Err(format!(
+            "grk_compress failed with status {} for {}",
+            status,
+            input.display()
+        ))
     }
 }
 

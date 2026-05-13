@@ -101,11 +101,7 @@ fn rec709_to_linear(v: f64) -> f64 {
 
 // DCI 2.6 gamma: linear → X'Y'Z' (gamma-encoded)
 fn linear_to_dci_gamma(v: f64) -> f64 {
-    if v <= 0.0 {
-        0.0
-    } else {
-        v.powf(1.0 / 2.6)
-    }
+    if v <= 0.0 { 0.0 } else { v.powf(1.0 / 2.6) }
 }
 
 /// Transform a 16-bit big-endian RGB frame buffer to X'Y'Z' (DCI) in-place.
